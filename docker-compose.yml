@@ -3,38 +3,21 @@ services:
   # HAProxy for multiple apps, etc
   # big TODO
   proxy:
-    image: haproxy:latest
-    # command: /sbin/syslogd -O /proc/1/fd/1 -R localhost && haproxy -f /usr/local/etc/haproxy/haproxy.cfg # Add logging to stdout by default
+    image: proxy:latest
+    init: true # Properly forward stop signals to the child proccesses (syslogd and haproxy)
+    build: ./proxy
     volumes:
       - ./haproxy:/usr/local/etc/haproxy #haproxy.cfg
-      - /dev/log:/dev/log
     ports:
       - "80:80"
+    depends_on:
+      - blog
+      - web
+      - portainer
     networks:
       - frontend
-  # proxy:
-  #   image: proxyd:latest
-  #   build: ./proxyd
-  #   ports:
-  #     - "80:80"
-  #   networks:
-  #     - frontend
-
-  portainer:
-    image: portainer/portainer
-    ports:
-      - "9000"
-    deploy:
-      placement:
-        constraints:
-          - "node.role == manager"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    networks:
-      - frontend
-
   blog:
-    image: ghost:latest
+    image: ghost:alpine
     ports:
       - "2368"
     volumes:
@@ -50,10 +33,21 @@ services:
       - "80"
     networks:
       - frontend
+  portainer:
+    image: portainer/portainer
+    ports:
+      - "9000"
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - frontend
 networks:
   frontend:
   backend:
 volumes:
   ghost-data:
   html:
-
