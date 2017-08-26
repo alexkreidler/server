@@ -4,18 +4,21 @@ services:
   # big TODO
   proxy:
     image: proxy:latest
-    init: true # Properly forward stop signals to the child proccesses (syslogd and haproxy)
+    # init: true # Properly forward stop signals to the child proccesses (syslogd and haproxy)
     build: ./proxy
     volumes:
       - ./haproxy:/usr/local/etc/haproxy #haproxy.cfg
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - blog
       - web
       - portainer
+      - company
     networks:
       - frontend
+      - infra
   blog:
     image: ghost:alpine
     ports:
@@ -33,6 +36,25 @@ services:
       - "80"
     networks:
       - frontend
+  company:
+    image: nginx
+    build: ./web
+    volumes:
+      - ./company:/usr/share/nginx/html
+    ports:
+      - "80"
+    networks:
+      - frontend
+  certbot:
+    # Placeholder for HAProxy
+    image: nginx
+    ports:
+      - "80"
+    networks:
+      - infra
+    # image: cert-manager:latest
+    # build: ./cert-manager
+
   portainer:
     image: portainer/portainer
     ports:
@@ -44,10 +66,10 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
-      - frontend
+      - infra
 networks:
   frontend:
-  backend:
+  infra:
 volumes:
   ghost-data:
   html:
