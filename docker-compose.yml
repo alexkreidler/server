@@ -1,7 +1,5 @@
 version: '2.2'
 services:
-  # HAProxy for multiple apps, etc
-  # big TODO
   limits:
     image: alpine
     mem_limit: 10m
@@ -27,6 +25,7 @@ services:
       - frontend
       - infra
       # - hidden
+  # timhigins.ml blog
   blog:
     restart: always
     image: ghost:alpine
@@ -37,6 +36,7 @@ services:
       - ${PWD}/blog/config.production.json:/var/lib/ghost/config.production.json
     networks:
       - frontend
+  # Wiz Project website
   web:
     extends: limits
     image: nginx:alpine
@@ -48,6 +48,7 @@ services:
       - "80"
     networks:
       - frontend
+  # Smartly ML website
   company:
     extends: limits
     image: nginx:alpine
@@ -58,6 +59,7 @@ services:
       - "80"
     networks:
       - frontend
+  # Github automation bot
   poule:
     extends: limits
     image: icecrime/poule
@@ -69,48 +71,11 @@ services:
       - "80"
     networks:
       - frontend
-  # mail:
-  #   extends: limits
-  #   image: zixia/simple-mail-forwarder
-  #   environment:
-  #     SMF_CONFIG: "@smartly.ml:timhigins@gmail.com,@wizproject.ml:timhigins@gmail.com"
-  #   ports:
-  #     - "25"
-  #   networks:
-  #     - frontend
-  # mail:
-  #   image: tvial/docker-mailserver:latest
-  #   hostname: mail
-  #   domainname: domain.com
-  #   container_name: mail
-  #   ports:
-  #   - "25:25"
-  #   - "143:143"
-  #   - "587:587"
-  #   - "993:993"
-  #   volumes:
-  #   - maildata:/var/mail
-  #   - mailstate:/var/mail-state
-  #   - ./mail/:/tmp/docker-mailserver/
-  #   environment:
-  #   - ENABLE_SPAMASSASSIN=1
-  #   - ENABLE_CLAMAV=1
-  #   - ENABLE_FAIL2BAN=1
-  #   - ENABLE_POSTGREY=1
-  #   - ONE_DIR=1
-  #   - DMS_DEBUG=0
-  #   cap_add:
-  #   - NET_ADMIN
-  # gitbot:
-  #   image: icecrime/poule
-  #   volumes:
-  #     -
-  #   working_dir: /gitbot
-
+  # LetsEncrypt SSL certificate renewal
   certbot:
     extends: limits
-    # Placeholder for HAProxy
     image: certbot/certbot
+    restart: always
     volumes:
       - "./certbot/cron:/var/spool/cron/crontabs"
       - "../letsencrypt:/etc/letsencrypt"
@@ -119,24 +84,22 @@ services:
       - "80"
     networks:
       - infra
-    # image: cert-manager:latest
-    # build: ./cert-manager
-
+  # Docker UI
   portainer:
     extends: limits
     image: portainer/portainer
+    restart: always
     ports:
       - "9000"
-    # deploy:
-    #   placement:
-    #     constraints:
-    #       - "node.role == manager"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - infra
+
+  # Drone CI
   drone-server:
     image: drone/drone:0.7
+    restart: always
     ports:
       - 8000
     volumes:
@@ -144,47 +107,22 @@ services:
     restart: always
     env_file:
       - drone/drone.env
-    # environment:
-    #   - DRONE_OPEN=true
-    #   - DRONE_HOST=http://ci.wizproject.ml
-    #   - DRONE_ADMIN=Tim15
-    #   - DRONE_GITHUB=true
-    #   - DRONE_GITHUB_CLIENT=60d37c011b7ef544d016
-    #   - DRONE_GITHUB_SECRET=5f5df0335dba3e02e147e3fae9ab8b44a483fa8c
-    #   - DRONE_SECRET=1609415d1b01df205864e25a1b807d5c3fb1add9ba42ad32
     networks:
       - frontend
       - infra
-
   drone-agent:
     image: drone/drone:0.7
+    restart: always
     command: agent
     restart: always
     depends_on:
       - drone-server
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - DRONE_SERVER=ws://ci.wizproject.ml/ws/broker
-      - DRONE_SECRET=1609415d1b01df205864e25a1b807d5c3fb1add9ba42ad32
+    env-file:
+      - ./drone/agent.env
     networks:
       - infra
-  # sandbox:
-  #   image: node:8 # npm install /app/lagertha && npm install --prefix /app/lagertha/node_modules --save-dev nodemon &&
-  #   command: "bash -c 'node /app/lagertha/node_modules/nodemon/bin/nodemon.js -L /app/lagertha/app.js'"
-  #   volumes:
-  #     - "./dev/:/app"
-  #   ports:
-  #     - 80
-  #   networks:
-  #     - frontend
-  #     - sandbox
-  # database:
-  #   image: mongo
-  #   ports:
-  #     - 27017
-  #   networks:
-  #     - sandbox
   # jupyter:
   #   image: tensorflow/tensorflow
   #   ports:
@@ -196,8 +134,6 @@ services:
 networks:
   frontend:
   infra:
-  sandbox:
-  # hidden:
 volumes:
   ghost-data:
   # ghost-config:
