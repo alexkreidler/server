@@ -1,3 +1,5 @@
 haproxy/certs
 *.DS_Store
 **/._*
+openvpn-data
+*.ovpn

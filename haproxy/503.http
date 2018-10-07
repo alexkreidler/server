@@ -1,0 +1,63 @@
+HTTP/1.0 503 Service Unavailable
+Cache-Control: no-cache
+Connection: close
+Content-Type: text/html
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    h1,
+    p {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 96px;
+      font-weight: 300;
+    }
+
+    p {
+      margin: 1rem;
+      font-size: 1rem;
+    }
+
+    .lead {
+      font-size: 1.3rem;
+    }
+
+    .header {
+      overflow: hidden;
+      color: #fff;
+      background: linear-gradient(-30deg, #4f70ce 0%, #12bbad 50%, #12bbad 100%);
+    }
+
+    div {
+      padding: 3rem;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1 class="big">Error -&nbsp;503</h1>
+  </div>
+  <div class="text">
+    <h1 class="display-1">We're sorry</h1>
+    <p class="lead">The page isn't available right now.</p>
+    <p class="">Please try again later.</p>
+  </div>
+</body>
+
+</html>

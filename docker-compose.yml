@@ -1,8 +1,14 @@
-version: '2.2'
+version: '3.7'
 services:
-  limits:
+  limits: &limits
+    init: true
+    deploy:
+      resources:
+        limits:
+          memory: 10m
+          cpus: '0.25'
     image: alpine
-    mem_limit: 10m
+    # mem_limit: 10m
   proxy:
     image: proxy:latest
     restart: always
@@ -38,7 +44,7 @@ services:
       - frontend
   # Wiz Project website
   web:
-    extends: limits
+    <<: *limits
     image: nginx:alpine
     restart: always
     volumes:
@@ -50,7 +56,7 @@ services:
       - frontend
   # Smartly ML website
   company:
-    extends: limits
+    <<: *limits
     image: nginx:alpine
     restart: always
     volumes:
@@ -59,9 +65,20 @@ services:
       - "80"
     networks:
       - frontend
+  # Zeta Records website
+  zeta:
+    <<: *limits
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - "./zeta:/usr/share/nginx/html"
+    ports:
+      - "80"
+    networks:
+      - frontend
   # Github automation bot
   poule:
-    extends: limits
+    <<: *limits
     image: icecrime/poule
     command: serve
     working_dir: /gitbot
@@ -73,9 +90,9 @@ services:
       - frontend
   # LetsEncrypt SSL certificate renewal
   certbot:
-    extends: limits
     image: certbot/certbot
     restart: always
+    init: true
     volumes:
       - "./certbot/cron:/var/spool/cron/crontabs"
       - "../letsencrypt:/etc/letsencrypt"
@@ -86,7 +103,7 @@ services:
       - infra
   # Docker UI
   portainer:
-    extends: limits
+    <<: *limits
     image: portainer/portainer
     restart: always
     ports:
@@ -119,10 +136,20 @@ services:
       - drone-server
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    env-file:
+    env_file:
       - ./drone/agent.env
     networks:
       - infra
+  openvpn:
+    cap_add:
+     - NET_ADMIN
+    image: kylemanna/openvpn
+    container_name: openvpn
+    ports:
+     - "1194:1194/udp"
+    restart: always
+    volumes:
+     - ./openvpn-data/conf:/etc/openvpn
   # jupyter:
   #   image: tensorflow/tensorflow
   #   ports:
